@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:smtp="http://www.mulesoft.org/schema/mule/smtp" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/smtp http://www.mulesoft.org/schema/mule/smtp/current/mule-smtp.xsd">
+    <smtp:gmail-connector name="Gmail" validateConnections="true" doc:name="Gmail"/>
+    <flow name="errornotificationFlow">
+        <set-variable variableName="moduleName" value="deltaapi" doc:name="Variable"/>
+        <set-variable variableName="resourceName" value="#['unitedflightsbydestination']" doc:name="Variable"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+errorDetails:{
+	
+	moduleName:flowVars.moduleName,
+	resourceName:flowVars.resourceName,
+	exceptionTime:flowVars.exceptionTime,
+	exceptionMessage:flowVars.exceptionMessage
+	
+}]]></dw:set-payload>
+        </dw:transform-message>
+        <logger message="Request sending to SMTP server........... #[payload]" level="INFO" doc:name="Logger"/>
+        <smtp:outbound-endpoint host="smtp.gmail.com" port="587" user="shkraeesa1@gmail.com" password="RaeesaPuntu" connector-ref="Gmail" to="shkraeesa1@gmail.com" subject="ErrorNofication" responseTimeout="10000" doc:name="SMTP" from="raeesashaik92@gmail.com"/>
+        <logger message="sent errorNotification" level="INFO" doc:name="Logger"/>
+    </flow>
+</mule>
